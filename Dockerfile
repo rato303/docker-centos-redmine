@@ -16,7 +16,15 @@ RUN yum install -y openssl-devel readline-devel zlib-devel curl-devel libyaml-de
 RUN yum install -y mysql-server mysql-devel
 RUN yum install -y httpd httpd-devel
 RUN yum install -y ImageMagick ImageMagick-devel ipa-pgothic-fonts
+RUN yum install -y python-setuptools
 RUN yum update -y
+
+RUN easy_install supervisor
+RUN echo_supervisord_conf > /etc/supervisord.conf
+RUN echo "[include]" >> /etc/supervisord.conf
+RUN echo "files = supervisord/conf/*.conf" >> /etc/supervisord.conf
+RUN mkdir -p /etc/supervisord/conf
+ADD service.conf /etc/supervisord/conf/service.conf
 
 RUN curl -o /usr/local/src/$RUBY_VERSION.tar.gz $RUBY_URL
 RUN tar xvf /usr/local/src/$RUBY_VERSION.tar.gz -C /usr/local/src
@@ -48,7 +56,6 @@ RUN gem install passenger --no-rdoc --no-ri
 RUN passenger-install-apache2-module
 ADD passenger.conf /etc/httpd/conf.d/passenger.conf
 
-RUN service httpd start
 RUN chkconfig httpd on
 
 RUN chown -R apache:apache /var/lib/redmine
